@@ -24,32 +24,41 @@ import {
 } from '@influxdata/clockface'
 
 // Actions
-import {addQuery} from 'src/timeMachine/actions'
+import {addQuery, setAutoRefresh} from 'src/timeMachine/actions'
 import {setTimeRange} from 'src/timeMachine/actions'
 
 // Utils
 import {getActiveTimeMachine, getActiveQuery} from 'src/timeMachine/selectors'
 
 // Types
-import {AppState, DashboardQuery, QueryEditMode, TimeRange} from 'src/types'
+import {
+  AppState,
+  DashboardQuery,
+  QueryEditMode,
+  TimeRange,
+  AutoRefresh,
+  AutoRefreshStatus,
+} from 'src/types'
 import {DashboardDraftQuery} from 'src/types/dashboards'
 
 interface StateProps {
   activeQuery: DashboardQuery
   draftQueries: DashboardDraftQuery[]
   timeRange: TimeRange
+  autoRefresh: AutoRefresh
 }
 
 interface DispatchProps {
   onAddQuery: typeof addQuery
   onSetTimeRange: typeof setTimeRange
+  onSetAutoRefresh: typeof setAutoRefresh
 }
 
 type Props = StateProps & DispatchProps
 
 class TimeMachineQueries extends PureComponent<Props> {
   public render() {
-    const {draftQueries, onAddQuery, timeRange, onSetTimeRange} = this.props
+    const {draftQueries, onAddQuery, timeRange} = this.props
 
     return (
       <div className="time-machine-queries">
@@ -82,7 +91,7 @@ class TimeMachineQueries extends PureComponent<Props> {
               <TimeMachineRefreshDropdown />
               <TimeRangeDropdown
                 timeRange={timeRange}
-                onSetTimeRange={onSetTimeRange}
+                onSetTimeRange={this.handleSetTimeRange}
               />
               <TimeMachineQueriesSwitcher />
               <SubmitQueryButton />
@@ -92,6 +101,25 @@ class TimeMachineQueries extends PureComponent<Props> {
         <div className="time-machine-queries--body">{this.queryEditor}</div>
       </div>
     )
+  }
+
+  private handleSetTimeRange = (
+    timeRange: TimeRange,
+    absoluteTimeRange?: boolean
+  ) => {
+    const {autoRefresh, onSetAutoRefresh, onSetTimeRange} = this.props
+
+    if (absoluteTimeRange) {
+      onSetAutoRefresh({...autoRefresh, status: AutoRefreshStatus.Disabled})
+    } else if (autoRefresh.status === AutoRefreshStatus.Disabled) {
+      if (autoRefresh.interval === 0) {
+        onSetAutoRefresh({...autoRefresh, status: AutoRefreshStatus.Paused})
+      } else {
+        onSetAutoRefresh({...autoRefresh, status: AutoRefreshStatus.Active})
+      }
+    }
+
+    onSetTimeRange(timeRange)
   }
 
   private get queryEditor(): JSX.Element {
@@ -108,16 +136,17 @@ class TimeMachineQueries extends PureComponent<Props> {
 }
 
 const mstp = (state: AppState) => {
-  const {draftQueries, timeRange} = getActiveTimeMachine(state)
+  const {draftQueries, timeRange, autoRefresh} = getActiveTimeMachine(state)
 
   const activeQuery = getActiveQuery(state)
 
-  return {timeRange, activeQuery, draftQueries}
+  return {timeRange, activeQuery, draftQueries, autoRefresh}
 }
 
 const mdtp = {
   onAddQuery: addQuery,
   onSetTimeRange: setTimeRange,
+  onSetAutoRefresh: setAutoRefresh,
 }
 
 export default connect<StateProps, DispatchProps>(
