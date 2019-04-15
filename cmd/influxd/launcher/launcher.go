@@ -615,6 +615,7 @@ func (m *Launcher) run(ctx context.Context) (err error) {
 		LookupService:                   lookupSvc,
 		DocumentService:                 m.kvService,
 		OrgLookupService:                m.kvService,
+		PromRegistry:                    m.reg,
 	}
 
 	// HTTP server
