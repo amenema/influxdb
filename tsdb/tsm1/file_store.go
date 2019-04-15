@@ -150,6 +150,9 @@ type TSMFile interface {
 	// allows sequential iteration to each and every block.
 	BlockIterator() *BlockIterator
 
+	// TimeRangeIterator returns an iterator starting at key.
+	TimeRangeIterator(key []byte, min, max int64) *TimeRangeIterator
+
 	// Free releases any resources held by the FileStore to free up system resources.
 	Free() error
 
@@ -419,6 +422,31 @@ func (f *FileStore) Type(key []byte) (byte, error) {
 // Delete removes the keys from the set of keys available in this file.
 func (f *FileStore) Delete(keys [][]byte) error {
 	return f.DeleteRange(keys, math.MinInt64, math.MaxInt64)
+}
+
+type unrefs []TSMFile
+
+func (u unrefs) Unref() {
+	for _, f := range u {
+		f.Unref()
+	}
+}
+
+// ForEachFile calls fn for all TSM files or until fn returns false.
+// fn is called on the same goroutine as the caller.
+func (f *FileStore) ForEachFile(fn func(f TSMFile) bool) {
+	f.mu.RLock()
+	files := make(unrefs, 0, len(f.files))
+	defer files.Unref()
+
+	for _, f := range f.files {
+		f.Ref()
+		files = append(files, f)
+		if !fn(f) {
+			break
+		}
+	}
+	f.mu.RUnlock()
 }
 
 func (f *FileStore) Apply(fn func(r TSMFile) error) error {

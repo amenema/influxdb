@@ -110,3 +110,24 @@ func DecodeStringArrayBlock(block []byte, a *tsdb.StringArray) error {
 	a.Values, err = StringArrayDecodeAll(vb, a.Values)
 	return err
 }
+
+// DecodeTimestampsArrayBlock decodes only the timestamps from block.
+func DecodeTimestampsArrayBlock(block []byte, a *tsdb.BooleanArray) error {
+	tb, _, err := unpackBlock(block[1:])
+	if err != nil {
+		return err
+	}
+
+	a.Timestamps, err = TimeArrayDecodeAll(tb, a.Timestamps)
+	if err != nil {
+		return err
+	}
+
+	count := len(a.Timestamps)
+	if cap(a.Values) < count {
+		a.Values = make([]bool, count)
+	} else {
+		a.Values = a.Values[:count]
+	}
+	return nil
+}

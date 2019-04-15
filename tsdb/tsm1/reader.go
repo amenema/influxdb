@@ -456,6 +456,21 @@ func (t *TSMReader) BlockIterator() *BlockIterator {
 	}
 }
 
+func (t *TSMReader) TimeRangeIterator(key []byte, min, max int64) *TimeRangeIterator {
+	t.mu.RLock()
+	iter := t.index.Iterator(key)
+	t.mu.RUnlock()
+
+	return &TimeRangeIterator{
+		r:    t,
+		iter: iter,
+		tr: TimeRange{
+			Min: min,
+			Max: max,
+		},
+	}
+}
+
 type BatchDeleter interface {
 	DeleteRange(keys [][]byte, min, max int64) error
 	Commit() error

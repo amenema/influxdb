@@ -96,6 +96,29 @@ func (a *FloatArray) Include(min, max int64) {
 	}
 }
 
+// Contains returns true if values exist between min and max inclusive. The
+// values must be deduplicated and sorted before calling Contains or the
+// results are undefined.
+func (a *FloatArray) Contains(min, max int64) bool {
+	rmin, rmax := a.FindRange(min, max)
+	if rmin == -1 && rmax == -1 {
+		return false
+	}
+
+	// a.Timestamps[rmin] ≥ min
+	// a.Timestamps[rmax] ≥ max
+
+	if a.Timestamps[rmin] == min {
+		return true
+	}
+
+	if rmax < a.Len() && a.Timestamps[rmax] == max {
+		return true
+	}
+
+	return rmax-rmin > 0
+}
+
 // search performs a binary search for UnixNano() v in a
 // and returns the position, i, where v would be inserted.
 // An additional check of a.Timestamps[i] == v is necessary
@@ -295,6 +318,29 @@ func (a *IntegerArray) Include(min, max int64) {
 		a.Timestamps = a.Timestamps[:rmax]
 		a.Values = a.Values[:rmax]
 	}
+}
+
+// Contains returns true if values exist between min and max inclusive. The
+// values must be deduplicated and sorted before calling Contains or the
+// results are undefined.
+func (a *IntegerArray) Contains(min, max int64) bool {
+	rmin, rmax := a.FindRange(min, max)
+	if rmin == -1 && rmax == -1 {
+		return false
+	}
+
+	// a.Timestamps[rmin] ≥ min
+	// a.Timestamps[rmax] ≥ max
+
+	if a.Timestamps[rmin] == min {
+		return true
+	}
+
+	if rmax < a.Len() && a.Timestamps[rmax] == max {
+		return true
+	}
+
+	return rmax-rmin > 0
 }
 
 // search performs a binary search for UnixNano() v in a
@@ -498,6 +544,29 @@ func (a *UnsignedArray) Include(min, max int64) {
 	}
 }
 
+// Contains returns true if values exist between min and max inclusive. The
+// values must be deduplicated and sorted before calling Contains or the
+// results are undefined.
+func (a *UnsignedArray) Contains(min, max int64) bool {
+	rmin, rmax := a.FindRange(min, max)
+	if rmin == -1 && rmax == -1 {
+		return false
+	}
+
+	// a.Timestamps[rmin] ≥ min
+	// a.Timestamps[rmax] ≥ max
+
+	if a.Timestamps[rmin] == min {
+		return true
+	}
+
+	if rmax < a.Len() && a.Timestamps[rmax] == max {
+		return true
+	}
+
+	return rmax-rmin > 0
+}
+
 // search performs a binary search for UnixNano() v in a
 // and returns the position, i, where v would be inserted.
 // An additional check of a.Timestamps[i] == v is necessary
@@ -699,6 +768,29 @@ func (a *StringArray) Include(min, max int64) {
 	}
 }
 
+// Contains returns true if values exist between min and max inclusive. The
+// values must be deduplicated and sorted before calling Contains or the
+// results are undefined.
+func (a *StringArray) Contains(min, max int64) bool {
+	rmin, rmax := a.FindRange(min, max)
+	if rmin == -1 && rmax == -1 {
+		return false
+	}
+
+	// a.Timestamps[rmin] ≥ min
+	// a.Timestamps[rmax] ≥ max
+
+	if a.Timestamps[rmin] == min {
+		return true
+	}
+
+	if rmax < a.Len() && a.Timestamps[rmax] == max {
+		return true
+	}
+
+	return rmax-rmin > 0
+}
+
 // search performs a binary search for UnixNano() v in a
 // and returns the position, i, where v would be inserted.
 // An additional check of a.Timestamps[i] == v is necessary
@@ -898,6 +990,29 @@ func (a *BooleanArray) Include(min, max int64) {
 		a.Timestamps = a.Timestamps[:rmax]
 		a.Values = a.Values[:rmax]
 	}
+}
+
+// Contains returns true if values exist between min and max inclusive. The
+// values must be deduplicated and sorted before calling Contains or the
+// results are undefined.
+func (a *BooleanArray) Contains(min, max int64) bool {
+	rmin, rmax := a.FindRange(min, max)
+	if rmin == -1 && rmax == -1 {
+		return false
+	}
+
+	// a.Timestamps[rmin] ≥ min
+	// a.Timestamps[rmax] ≥ max
+
+	if a.Timestamps[rmin] == min {
+		return true
+	}
+
+	if rmax < a.Len() && a.Timestamps[rmax] == max {
+		return true
+	}
+
+	return rmax-rmin > 0
 }
 
 // search performs a binary search for UnixNano() v in a

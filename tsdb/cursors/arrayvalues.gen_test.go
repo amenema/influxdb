@@ -122,6 +122,33 @@ func TestIntegerArray_Include(t *testing.T) {
 	}
 }
 
+func TestIntegerArray_Contains(t *testing.T) {
+	cases := []struct {
+		n        string
+		min, max int64
+		exp      bool
+	}{
+		{"none-lo", 0, 9, false},
+		{"none-hi", 19, 30, false},
+		{"first", 0, 10, true},
+		{"first-eq", 10, 10, true},
+		{"last", 18, 20, true},
+		{"last-eq", 18, 18, true},
+		{"all but first and last", 12, 16, true},
+		{"none in middle", 13, 13, false},
+		{"middle", 14, 14, true},
+	}
+
+	for _, tc := range cases {
+		t.Run(fmt.Sprintf("%s[%d,%d]", tc.n, tc.min, tc.max), func(t *testing.T) {
+			vals := makeIntegerArray(5, 10, 20)
+			if got := vals.Contains(tc.min, tc.max); got != tc.exp {
+				t.Errorf("Contains -got/+exp\n%s", cmp.Diff(got, tc.exp))
+			}
+		})
+	}
+}
+
 func benchExclude(b *testing.B, vals *IntegerArray, min, max int64) {
 	b.ResetTimer()
 
