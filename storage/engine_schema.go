@@ -14,6 +14,9 @@ type StringIterator interface {
 
 	// Value returns the current value.
 	Value() string
+
+	// TODO consider adding this method
+	// Stats() cursors.CursorStats
 }
 
 // TagKeys returns an iterator where the values are tag keys for the bucket
