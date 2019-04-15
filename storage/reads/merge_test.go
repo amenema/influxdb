@@ -1,10 +1,12 @@
 package reads_test
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/influxdata/influxdb/storage"
 	"github.com/influxdata/influxdb/storage/reads"
 	"github.com/influxdata/influxdb/storage/reads/datatypes"
 )
@@ -99,6 +101,73 @@ series: _m=m0,tag0=val03
 
 			if got := sb.String(); !cmp.Equal(got, tt.exp) {
 				t.Errorf("unexpected value; -got/+exp\n%s", cmp.Diff(got, tt.exp))
+			}
+		})
+	}
+}
+
+type mockStringIterator struct {
+	values    []string
+	nextValue *string
+}
+
+func newMockStringIterator(values ...string) *mockStringIterator {
+	return &mockStringIterator{values: values}
+}
+
+func (si *mockStringIterator) Next() bool {
+	if len(si.values) > 0 {
+		si.nextValue = &si.values[0]
+		si.values = si.values[1:]
+		return true
+	}
+	si.nextValue = nil
+	return false
+}
+
+func (si *mockStringIterator) Value() string {
+	if si.nextValue != nil {
+		return *si.nextValue
+	}
+
+	// Better than panic.
+	return ""
+}
+
+func TestNewMergedStringIterator(t *testing.T) {
+	tests := []struct {
+		name           string
+		iterators      []storage.StringIterator
+		expectedValues []string
+	}{
+		{
+			name: "simple",
+			iterators: []storage.StringIterator{
+				newMockStringIterator("foo", "bar"),
+			},
+			expectedValues: []string{"foo", "bar"},
+		},
+		{
+			name: "duplicates",
+			iterators: []storage.StringIterator{
+				newMockStringIterator("foo"),
+				newMockStringIterator("bar", "bar"),
+				newMockStringIterator("foo"),
+				newMockStringIterator("baz", "qux"),
+			},
+			expectedValues: []string{"foo", "bar", "baz", "qux"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := reads.NewMergedStringIterator(tt.iterators)
+			var gotValues []string
+			for m.Next() {
+				gotValues = append(gotValues, m.Value())
+			}
+			if !reflect.DeepEqual(tt.expectedValues, gotValues) {
+				t.Errorf("expected %v, got %v", tt.expectedValues, gotValues)
 			}
 		})
 	}
