@@ -106,34 +106,6 @@ series: _m=m0,tag0=val03
 	}
 }
 
-type mockStringIterator struct {
-	values    []string
-	nextValue *string
-}
-
-func newMockStringIterator(values ...string) *mockStringIterator {
-	return &mockStringIterator{values: values}
-}
-
-func (si *mockStringIterator) Next() bool {
-	if len(si.values) > 0 {
-		si.nextValue = &si.values[0]
-		si.values = si.values[1:]
-		return true
-	}
-	si.nextValue = nil
-	return false
-}
-
-func (si *mockStringIterator) Value() string {
-	if si.nextValue != nil {
-		return *si.nextValue
-	}
-
-	// Better than panic.
-	return ""
-}
-
 func TestNewMergedStringIterator(t *testing.T) {
 	tests := []struct {
 		name           string

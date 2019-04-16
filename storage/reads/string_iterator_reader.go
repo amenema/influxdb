@@ -29,7 +29,7 @@ func (r *StringIteratorStreamReader) Next() bool {
 		return false
 	}
 
-	if r.response == nil {
+	if r.response == nil || len(r.response.Values) - 1 <= r.i {
 		r.response, r.err = r.stream.Recv()
 		if r.err != nil {
 			return false
@@ -40,11 +40,11 @@ func (r *StringIteratorStreamReader) Next() bool {
 		r.i++
 	}
 
-	return len(r.response.Values) < r.i
+	return len(r.response.Values) > r.i
 }
 
 func (r *StringIteratorStreamReader) Value() string {
-	if len(r.response.Values) < r.i {
+	if len(r.response.Values) > r.i {
 		return string(r.response.Values[r.i])
 	}
 
